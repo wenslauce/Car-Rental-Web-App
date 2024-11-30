@@ -1,0 +1,93 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "libsql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  phone     String?
+  password  String
+  createdAt DateTime  @default(now())
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model Car {
+  id                String             @id @default(cuid())
+  brand            String
+  model            String
+  year             Int
+  pricePerDay      Float
+  bodyType         String
+  class            String
+  transmission     String
+  fuelType         String
+  passengerCapacity Int
+  imageUrl         String
+  available        Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  bookings         Booking[]
+  reviews          Review[]
+  availabilityLogs CarAvailabilityLog[]
+}
+
+model Booking {
+  id                String   @id @default(cuid())
+  userId           String
+  carId            String
+  startDate        DateTime
+  endDate          DateTime
+  pickupTime       String
+  dropoffTime      String
+  totalPrice       Float
+  paymentStatus    String   @default("PENDING") // PENDING, PAID, FAILED
+  createdAt        DateTime @default(now())
+  user             User     @relation(fields: [userId], references: [id])
+  car              Car      @relation(fields: [carId], references: [id])
+  payment          Payment?
+}
+
+model Payment {
+  id                  String   @id @default(cuid())
+  bookingId          String   @unique
+  amount             Float
+  paymentMethod      String
+  paymentStatus      String
+  transactionReference String
+  createdAt          DateTime @default(now())
+  booking            Booking  @relation(fields: [bookingId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  carId     String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+  car       Car      @relation(fields: [carId], references: [id])
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+}
+
+model CarAvailabilityLog {
+  id        String   @id @default(cuid())
+  carId     String
+  status    Boolean
+  updatedAt DateTime @default(now())
+  car       Car      @relation(fields: [carId], references: [id])
+}
